@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
+import Card from './Card';
 
 const cardNames = [
   'daisy',
@@ -26,7 +27,7 @@ const shuffleInPlace = function <T>(array: Array<T>): Array<T> {
   return array;
 };
 
-function CardGame() {
+function CardGame(): ReactElement {
   const [cards, setCards] = useState<CardName[]>([]);
   const [previouslyPickedCards, setPreviouslyPickedCards] = useState<
     CardName[]
@@ -38,11 +39,35 @@ function CardGame() {
     setCards(shuffleInPlace([...cardNames]));
   }, [previouslyPickedCards]);
 
-  function renderCards(cards: CardName[]) {
-    return cards.map((cardName) => <Card cardName={cardName} />);
+  function renderCards(cards: CardName[]): ReactElement {
+    const cardElements = cards.map((cardName) => (
+      <Card key={cardName} cardName={cardName} handleClick={handleCardClick} />
+    ));
+
+    return <div className="cards">{cardElements}</div>;
   }
 
-  return <div className="card-game">{renderCards(cards)}</div>;
+  function handleCardClick(cardName: CardName): void {
+    if (previouslyPickedCards.includes(cardName)) {
+      // Player loses. Set top score, reset current score, restart game.
+      setTopScore(Math.max(currentScore, topScore));
+      setCurrentScore(0);
+      setPreviouslyPickedCards([]);
+    } else {
+      // Game continues. Current score += 1, previouslyPickedCards += cardName
+      setPreviouslyPickedCards([...previouslyPickedCards, cardName]);
+      setCurrentScore(currentScore + 1);
+    }
+  }
+
+  return (
+    <div className="card-game">
+      <div>Current Score: {currentScore}</div>
+      <div>Top Score: {topScore}</div>
+      {renderCards(cards)}
+    </div>
+  );
 }
 
+export type { CardName };
 export default CardGame;
